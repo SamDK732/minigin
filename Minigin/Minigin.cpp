@@ -9,6 +9,8 @@
 #include "SceneManager.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include <thread>
+#include "GameTime.h"
 
 SDL_Window* g_window{};
 
@@ -77,18 +79,30 @@ dae::Minigin::~Minigin()
 
 void dae::Minigin::Run(const std::function<void()>& load)
 {
-	load();
+    load();
 
-	auto& renderer = Renderer::GetInstance();
-	auto& sceneManager = SceneManager::GetInstance();
-	auto& input = InputManager::GetInstance();
+    auto& renderer{ Renderer::GetInstance() };
+    auto& sceneManager{ SceneManager::GetInstance() };
+    auto& input{ InputManager::GetInstance() };
+    auto& time{ GameTime::GetInstance() };
 
-	// todo: this update loop could use some work.
-	bool doContinue = true;
-	while (doContinue)
-	{
-		doContinue = input.ProcessInput();
-		sceneManager.Update();
-		renderer.Render();
-	}
+    bool doContinue{ true };
+
+    while (doContinue)
+    {
+        time.Update();
+
+        doContinue = input.ProcessInput();
+
+        while (time.IsLag())
+        {
+            //sceneManager.FixedUpdate();
+            time.ProcessLag();
+        }
+
+        sceneManager.Update();
+        renderer.Render();
+
+        std::this_thread::sleep_for(time.GetSleepTime());
+    }
 }
