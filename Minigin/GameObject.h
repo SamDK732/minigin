@@ -35,6 +35,12 @@ namespace dae
 		template<typename ComponentT>
 		[[nodiscard]] ComponentT* GetComponent() const requires ComponentConcept<ComponentT>;
 
+		template<typename ComponentT>
+		bool HasComponent() const requires ComponentConcept<ComponentT>
+		{
+			return GetComponent<ComponentT>() != nullptr;
+		}
+
 		GameObject() = default;
 		~GameObject() = default;
 		GameObject(const GameObject& other) = delete;
